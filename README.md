@@ -1,4 +1,4 @@
 # pollenHJ
-pollen-sequencing pipeline modified by HJ
-The pipeline was first written by Yumin Huang
-Step8 needs categorizing SE and PE
+pollen-sequencing pipeline modified by HJ \n
+The pipeline was first written by Yumin Huang \n
+Step8 needs categorizing SE and PE \n
