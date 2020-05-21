@@ -303,20 +303,21 @@ def step4(inputfile, snps, outputfile):
 			tmp = line.split("\t")[0]
 			elements = line[:-1].split("\t")
 			if tmp not in read:
+				if len(list(read.keys())) > 0:
+					status(fout, read)
 				read = {}
 				read[tmp] = [elements]
 			else:
 				read[tmp].append(elements)
-			status(fout, tmp, read)
 
 	print ("------ Step4 END ------")
 	print ("time: " + str (time.time()-time_start))
 
 	return (outputfile + ".sorted.reads.list.status")
 
-def status(fout, tmp, read):
-	fout.write(tmp)
-	for each in lines:
+def status(fout, read):
+	fout.write(list(read.keys())[0])
+	for each in list(read.values()):
 		if each[1] == each[2]:
 			status = "0"
 		elif each[1] == each[3]:
