@@ -294,32 +294,28 @@ def step4(inputfile, snps, outputfile):
 	time_start = time.time()
 
 	fout = open(outputfile + ".sorted.reads.list.status", 'w')
+	read = {}
 	with open(inputfile) as f:
-		_, *ff = f
-		tmp = _.split("\t")[0]
-		lines = []
-		lines.append(_[:-1].split("\t"))
-		for i in ff:
-			elements = i[:-1].split("\t")
-			if elements[0]	!= tmp:
-				lines = sorted(lines, key = lambda x:x[-2])
-				status(fout, tmp, lines)
-
-				tmp = elements[0]
-				lines = []
-				lines.append(elements)
+		#_, *ff = f
+		#tmp = _.split("\t")[0]
+		#lines = []
+		#lines.append(_[:-1].split("\t"))
+		for line in f:
+			tmp = line.split("\t")[0]
+			elements = line[:-1].split("\t")
+			if tmp not in read:
+				read = {}
+				read[tmp] = [elements]
 			else:
-				lines.append(elements)
-
-		status(fout, tmp, lines)
-
+				read[tmp].append(elements)
+			status(fout, tmp, read)
 
 	print ("------ Step4 END ------")
 	print ("time: " + str (time.time()-time_start))
 
 	return (outputfile + ".sorted.reads.list.status")
 
-def status(fout, tmp, lines):
+def status(fout, tmp, read):
 	fout.write(tmp)
 	for each in lines:
 		if each[1] == each[2]:
