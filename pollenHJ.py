@@ -45,11 +45,10 @@ def get_parser():
 	group1.add_argument('-Q', '--qs', help='minimum base qualities (optional)', type=int, default=0)
 	group1.add_argument('-w', '--window', help='window size for each bin (default=2000000)', type=int, default=2000000)
 	group1.add_argument('-e', '--step', help='window step for bins (default=100000)', type=int, default=100000)
-	group1.add_argument('-l', '--length', help='read length in sequencing', type=int, default=150)
 	group1.add_argument('--insertion', help='insertion fragment size of sequencing', type=int, default=400)
+	group1.add_argument('--type', type=str, choices=["PE", "SE"],help="sequencing type: PE or SE ? (default=PE)", default="PE")
 
 	group2 = parser.add_argument_group('Advanced', 'optional arguments')
-	group2.add_argument('--type', type=str, choices=["PE", "SE"],help="sequencing type: PE or SE ? (default=PE)", default="PE")
 	group2.add_argument('--allele-frq', help='calculate allele frequency, if you just want calculate frequency only, please run it with "--run-split", and change the input file to "XXXX.reads.list" (default=False) ', action="store_true")
 	group2.add_argument('--allele-frq-depth', help='run with "--allele-frq", the minimum reads depth in each snps which used for calculating allele frequency (default=20)', type=int, default=20)
 	group2.add_argument('--bin-depth', help='the minimum reads depth in each windows (default=2000)', type=int, default=2000)
@@ -266,20 +265,20 @@ def step3(inputfile, snps, outputfile, qs, parallel):
 
 	if parallel:
 		if int(qs) != 0:
-			cmd = "awk '{if($7>=" + str(int(qs)) + "){print}}' " + inputfile + " | parallel --pipe --files sort -nk 1 -S512M | parallel -Xj1 sort -nk 1 -S1024M -m {} ';' rm {} |awk 'BEGIN{a=0}{if($1!=a){a=$1; tmp=$0; f=0}else{if(f==0){print tmp;print $0;f=1}else{print $0}}}' > " + outputfile + ".sorted.reads.list"
+			cmd = "awk '{if($7>=" + str(int(qs)) + "){print}}' " + inputfile + " | parallel --pipe --files sort -T $(pwd) -nk 1 -S512M | parallel -Xj1 sort -nk 1 -S1024M -m {} ';' rm {} |awk 'BEGIN{a=0}{if($1!=a){a=$1; tmp=$0; f=0}else{if(f==0){print tmp;print $0;f=1}else{print $0}}}' > " + outputfile + ".sorted.reads.list"
 			print ("CMD = " + cmd)
 			os.system(cmd)
 		else:
-			cmd = "cat " + inputfile + " | parallel --pipe --files sort -nk 1 -S512M | parallel -Xj1 sort -nk 1 -S1024M -m {} ';' rm {} |awk 'BEGIN{a=0}{if($1!=a){a=$1; tmp=$0; f=0}else{if(f==0){print tmp;print $0;f=1}else{print $0}}}' > " + outputfile + ".sorted.reads.list"
+			cmd = "cat " + inputfile + " | parallel --pipe --files sort -T $(pwd) -nk 1 -S512M | parallel -Xj1 sort -T $(pwd) -nk 1 -S1024M -m {} ';' rm {} |awk 'BEGIN{a=0}{if($1!=a){a=$1; tmp=$0; f=0}else{if(f==0){print tmp;print $0;f=1}else{print $0}}}' > " + outputfile + ".sorted.reads.list"
 			print ("CMD = " + cmd)
 			os.system(cmd)
 	else:
 		if int(qs) != 0:
-			cmd = "awk '{if($7>=" + str(int(qs)) + "){print}}' " + inputfile + " | sort -nk 1 |awk 'BEGIN{a=0}{if($1!=a){a=$1; tmp=$0; f=0}else{if(f==0){print tmp;print $0;f=1}else{print $0}}}' > " + outputfile + ".sorted.reads.list"
+			cmd = "awk '{if($7>=" + str(int(qs)) + "){print}}' " + inputfile + " | sort -T $(pwd) -nk 1 |awk 'BEGIN{a=0}{if($1!=a){a=$1; tmp=$0; f=0}else{if(f==0){print tmp;print $0;f=1}else{print $0}}}' > " + outputfile + ".sorted.reads.list"
 			print ("CMD = " + cmd)
 			os.system(cmd)
 		else:
-			cmd = "sort -nk 1 " + inputfile + " |awk 'BEGIN{a=0}{if($1!=a){a=$1; tmp=$0; f=0}else{if(f==0){print tmp;print $0;f=1}else{print $0}}}' > " + outputfile + ".sorted.reads.list"
+			cmd = "sort -T $(pwd) -nk 1 " + inputfile + " |awk 'BEGIN{a=0}{if($1!=a){a=$1; tmp=$0; f=0}else{if(f==0){print tmp;print $0;f=1}else{print $0}}}' > " + outputfile + ".sorted.reads.list"
 			print ("CMD = " + cmd)
 			os.system(cmd)
 
@@ -504,8 +503,7 @@ def main():
 			inputfile = step6(inputfile, args['snps'], args['output'], args['parallel_sort'])
 		#	inputfile = step7(inputfile, args['snps'], args['output'])
 		if args['step8']:
-			inputfile = step8(inputfile, args['fai'], args['output'], args['window'], args['step'], args['bin_depth'],
-							  args['length'], args['insertion'])
+			inputfile = step8(inputfile, args['fai'], args['output'], args['window'], args['step'], args['bin_depth'], args['insertion'])
 		print ("------- Done!!! -------")
 	
 	else:
@@ -525,7 +523,7 @@ def main():
 		inputfile = step5(inputfile, args['snps'], args['output'])
 		inputfile = step6(inputfile, args['snps'], args['output'], args['parallel_sort'])
 		#	inputfile = step7(inputfile, args['snps'], args['output'])
-		inputfile = step8(inputfile, args['fai'], args['output'], args['window'], args['step'], args['bin_depth'])
+		inputfile = inputfile = step8(inputfile, args['fai'], args['output'], args['window'], args['step'], args['bin_depth'], args['insertion'])
 
 
 if __name__ == "__main__":
