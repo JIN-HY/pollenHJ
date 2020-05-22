@@ -295,10 +295,6 @@ def step4(inputfile, snps, outputfile):
 	fout = open(outputfile + ".sorted.reads.list.status", 'w')
 	read = {}
 	with open(inputfile) as f:
-		#_, *ff = f
-		#tmp = _.split("\t")[0]
-		#lines = []
-		#lines.append(_[:-1].split("\t"))
 		for line in f:
 			tmp = line.split("\t")[0]
 			elements = line[:-1].split("\t")
@@ -309,6 +305,7 @@ def step4(inputfile, snps, outputfile):
 				read[tmp] = [elements]
 			else:
 				read[tmp].append(elements)
+				read[tmp] = sorted(read[tmp], key = lambda x:x[5]) 
 
 	print ("------ Step4 END ------")
 	print ("time: " + str (time.time()-time_start))
