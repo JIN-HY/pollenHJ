@@ -314,7 +314,7 @@ def step4(inputfile, snps, outputfile):
 
 def status(fout, read):
 	fout.write(list(read.keys())[0])
-	for each in list(read.values()):
+	for each in read[(list(read.keys())[0]]:
 		if each[1] == each[2]:
 			status = "0"
 		elif each[1] == each[3]:
