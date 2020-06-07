@@ -46,7 +46,7 @@ def get_parser():
 	group1.add_argument('-w', '--window', help='window size for each bin (default=2000000)', type=int, default=2000000)
 	group1.add_argument('-e', '--step', help='window step for bins (default=100000)', type=int, default=100000)
 	group1.add_argument('--insertion', help='insertion fragment size of sequencing', type=int, default=400)
-	group1.add_argument('--type', type=str, choices=["PE", "SE"],help="sequencing type: PE or SE ? (default=PE)", default="PE")
+	group1.add_argument('--tp', type=str, choices=["PE", "SE"],help="sequencing type: PE or SE ? (default=PE)", default="PE")
 
 	group2 = parser.add_argument_group('Advanced', 'optional arguments')
 	group2.add_argument('--allele-frq', help='calculate allele frequency, if you just want calculate frequency only, please run it with "--run-split", and change the input file to "XXXX.reads.list" (default=False) ', action="store_true")
@@ -314,7 +314,7 @@ def step4(inputfile, snps, outputfile):
 
 def status(fout, read):
 	fout.write(list(read.keys())[0])
-	for each in read[(list(read.keys())[0]]:
+	for each in list(read.values())[0]:
 		if each[1] == each[2]:
 			status = "0"
 		elif each[1] == each[3]:
@@ -437,7 +437,7 @@ def step7(inputfile, snps, outputfile):
 
 	return outputfile
 
-def step8(inputfile, fai, outputfile, win, step, bin_depth, length, insertion):
+def step8(inputfile, fai, outputfile, win, step, bin_depth, tp, insertion):
 	print ("------ Step8: make windows, calculate the recombination reads number and non-recombination reads number in each bin ------")
 	time_start = time.time()
 
@@ -457,10 +457,12 @@ def step8(inputfile, fai, outputfile, win, step, bin_depth, length, insertion):
 	print ("CMD = " + cmd3)
 	os.system(cmd3)
 
-	cmd4 = "paste " + outputfile +  ".recombination.bin " + outputfile +  ".no.recombination.bin" + \
-		" | awk 'BEGIN{print" + ' "chr\\tstart\\tend\\tid\\tnumber"}{if(($5!="0")&&($1!="chr")&&($10>=' + str(bin_depth) + ')){print $1"\\t"$2"\\t"$3"\\t"$4"\\t"$5/($5+$10)/' + str(insertion) + r'*' + str(win) + "}}' >" + outputfile + ".bin.rate"
-	#cmd4 = "paste " + outputfile +  ".recombination.bin " + outputfile +  ".no.recombination.bin" + \
-	#	" | awk 'BEGIN{print" + ' "chr\\tstart\\tend\\tid\\tnumber"}{if(($5!="0")&&($1!="chr")&&($10>=' + str(bin_depth) + ')){print $1"\\t"$2"\\t"$3"\\t"$4"\\t"$5/$10}' + "}' >" + outputfile + ".bin.rate"
+	if tp == "PE":
+		cmd4 = "paste " + outputfile +  ".recombination.bin " + outputfile +  ".no.recombination.bin" + \
+			" | awk 'BEGIN{print" + ' "chr\\tstart\\tend\\tid\\tnumber"}{if(($5!="0")&&($1!="chr")&&($10>=' + str(bin_depth) + ')){print $1"\\t"$2"\\t"$3"\\t"$4"\\t"$5/($5+$10)/' + str(insertion) + r'*' + str(win) + "}}' >" + outputfile + ".bin.rate"
+	else:
+		cmd4 = "paste " + outputfile +  ".recombination.bin " + outputfile +  ".no.recombination.bin" + \
+			" | awk 'BEGIN{print" + ' "chr\\tstart\\tend\\tid\\tnumber"}{if(($5!="0")&&($1!="chr")&&($10>=' + str(bin_depth) + ')){print $1"\\t"$2"\\t"$3"\\t"$4"\\t"$5/($5+$10)}' + "}' >" + outputfile + ".bin.rate"
 	print ("CMD = " + cmd4)
 	os.system(cmd4)
 	
@@ -501,7 +503,7 @@ def main():
 			inputfile = step6(inputfile, args['snps'], args['output'], args['parallel_sort'])
 		#	inputfile = step7(inputfile, args['snps'], args['output'])
 		if args['step8']:
-			inputfile = step8(inputfile, args['fai'], args['output'], args['window'], args['step'], args['bin_depth'], args['insertion'])
+			inputfile = step8(inputfile, args['fai'], args['output'], args['window'], args['step'], args['bin_depth'], args['tp'], args['insertion'])
 		print ("------- Done!!! -------")
 	
 	else:
@@ -521,7 +523,7 @@ def main():
 		inputfile = step5(inputfile, args['snps'], args['output'])
 		inputfile = step6(inputfile, args['snps'], args['output'], args['parallel_sort'])
 		#	inputfile = step7(inputfile, args['snps'], args['output'])
-		inputfile = inputfile = step8(inputfile, args['fai'], args['output'], args['window'], args['step'], args['bin_depth'], args['insertion'])
+		inputfile = step8(inputfile, args['fai'], args['output'], args['window'], args['step'], args['bin_depth'], args['tp'], args['insertion'])
 
 
 if __name__ == "__main__":
