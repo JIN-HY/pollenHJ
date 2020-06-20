@@ -458,12 +458,8 @@ def step8(inputfile, fai, outputfile, win, step, bin_depth):
 
 	distance = os.popen("awk '{sum += ($4-$2); n++} END {print sum/n}'" + outputfile + ".recombination").read()[:-1]
 
-	if tp == "PE":
-		cmd4 = "paste " + outputfile +  ".recombination.bin " + outputfile +  ".no.recombination.bin" + \
-			" | awk 'BEGIN{print" + ' "chr\\tstart\\tend\\tid\\tnumber"}{if(($5!="0")&&($1!="chr")&&($10>=' + str(bin_depth) + ')){print $1"\\t"$2"\\t"$3"\\t"$4"\\t"$5/($5+$10)/' + distance + "}}' >" + outputfile + ".bin.rate"
-	else:
-		cmd4 = "paste " + outputfile +  ".recombination.bin " + outputfile +  ".no.recombination.bin" + \
-			" | awk 'BEGIN{print" + ' "chr\\tstart\\tend\\tid\\tnumber"}{if(($5!="0")&&($1!="chr")&&($10>=' + str(bin_depth) + ')){print $1"\\t"$2"\\t"$3"\\t"$4"\\t"$5/($5+$10)}' + "}' >" + outputfile + ".bin.rate"
+	cmd4 = "paste " + outputfile +  ".recombination.bin " + outputfile +  ".no.recombination.bin" + \
+		" | awk 'BEGIN{print" + ' "chr\\tstart\\tend\\tid\\tnumber"}{if(($5!="0")&&($1!="chr")&&($10>=' + str(bin_depth) + ')){print $1"\\t"$2"\\t"$3"\\t"$4"\\t"$5/($5+$10)/' + distance + "}}' >" + outputfile + ".bin.rate"
 	print ("CMD = " + cmd4)
 	os.system(cmd4)
 	
