@@ -36,8 +36,8 @@ def get_parser():
 	)
 
 	group1 = parser.add_argument_group('Main', 'main arguments')
-	group1.add_argument('-i','--input', help='bam input file, must be indexed', type=str)
-	group1.add_argument('-s','--snps', help='SNPs info betweent parents', type=str)
+	group1.add_argument('-i', '--input', help='bam input file, must be indexed', type=str)
+	group1.add_argument('-s', '--snps', help='SNPs info betweent parents', type=str)
 	group1.add_argument('-o', '--output', help='output name', type=str)
 	group1.add_argument('-f', '--fai', help='genome index file', type=str)
 	group1.add_argument('-q', '--mapq', help='minimum MAPQ value (optional)', type=int, default=0)
@@ -45,7 +45,6 @@ def get_parser():
 	group1.add_argument('-Q', '--qs', help='minimum base qualities (optional)', type=int, default=0)
 	group1.add_argument('-w', '--window', help='window size for each bin (default=2000000)', type=int, default=2000000)
 	group1.add_argument('-e', '--step', help='window step for bins (default=100000)', type=int, default=100000)
-	group1.add_argument('--insertion', help='insertion fragment size of sequencing', type=int, default=400)
 	group1.add_argument('--tp', type=str, choices=["PE", "SE"],help="sequencing type: PE or SE ? (default=PE)", default="PE")
 
 	group2 = parser.add_argument_group('Advanced', 'optional arguments')
@@ -437,7 +436,7 @@ def step7(inputfile, snps, outputfile):
 
 	return outputfile
 
-def step8(inputfile, fai, outputfile, win, step, bin_depth, tp, insertion):
+def step8(inputfile, fai, outputfile, win, step, bin_depth):
 	print ("------ Step8: make windows, calculate the recombination reads number and non-recombination reads number in each bin ------")
 	time_start = time.time()
 
@@ -457,9 +456,11 @@ def step8(inputfile, fai, outputfile, win, step, bin_depth, tp, insertion):
 	print ("CMD = " + cmd3)
 	os.system(cmd3)
 
+	distance = os.popen("awk '{sum += ($4-$2); n++} END {print sum/n}'" + outputfile + ".recombination").read()[:-1]
+
 	if tp == "PE":
 		cmd4 = "paste " + outputfile +  ".recombination.bin " + outputfile +  ".no.recombination.bin" + \
-			" | awk 'BEGIN{print" + ' "chr\\tstart\\tend\\tid\\tnumber"}{if(($5!="0")&&($1!="chr")&&($10>=' + str(bin_depth) + ')){print $1"\\t"$2"\\t"$3"\\t"$4"\\t"$5/($5+$10)/' + str(insertion) + r'*' + str(win) + "}}' >" + outputfile + ".bin.rate"
+			" | awk 'BEGIN{print" + ' "chr\\tstart\\tend\\tid\\tnumber"}{if(($5!="0")&&($1!="chr")&&($10>=' + str(bin_depth) + ')){print $1"\\t"$2"\\t"$3"\\t"$4"\\t"$5/($5+$10)/' + distance + "}}' >" + outputfile + ".bin.rate"
 	else:
 		cmd4 = "paste " + outputfile +  ".recombination.bin " + outputfile +  ".no.recombination.bin" + \
 			" | awk 'BEGIN{print" + ' "chr\\tstart\\tend\\tid\\tnumber"}{if(($5!="0")&&($1!="chr")&&($10>=' + str(bin_depth) + ')){print $1"\\t"$2"\\t"$3"\\t"$4"\\t"$5/($5+$10)}' + "}' >" + outputfile + ".bin.rate"
@@ -503,7 +504,7 @@ def main():
 			inputfile = step6(inputfile, args['snps'], args['output'], args['parallel_sort'])
 		#	inputfile = step7(inputfile, args['snps'], args['output'])
 		if args['step8']:
-			inputfile = step8(inputfile, args['fai'], args['output'], args['window'], args['step'], args['bin_depth'], args['tp'], args['insertion'])
+			inputfile = step8(inputfile, args['fai'], args['output'], args['window'], args['step'], args['bin_depth'])
 		print ("------- Done!!! -------")
 	
 	else:
@@ -523,7 +524,7 @@ def main():
 		inputfile = step5(inputfile, args['snps'], args['output'])
 		inputfile = step6(inputfile, args['snps'], args['output'], args['parallel_sort'])
 		#	inputfile = step7(inputfile, args['snps'], args['output'])
-		inputfile = step8(inputfile, args['fai'], args['output'], args['window'], args['step'], args['bin_depth'], args['tp'], args['insertion'])
+		inputfile = step8(inputfile, args['fai'], args['output'], args['window'], args['step'], args['bin_depth'])
 
 
 if __name__ == "__main__":
