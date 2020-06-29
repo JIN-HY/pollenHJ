@@ -456,10 +456,18 @@ def step8(inputfile, fai, outputfile, win, step, bin_depth):
 	print ("CMD = " + cmd3)
 	os.system(cmd3)
 
-	distance = os.popen("awk '{sum += ($4-$2); n++} END {print sum/n}'" + outputfile + ".recombination").read()[:-1]
+	cmd5 = 'cat ' + outputfile + '.recombination.number ' + outputfile + '.no.recombination.number |' + \
+		"awk '{if" + '($2<$4){print $1"\\t"$2"\\t"$4"\\t"(($4-$2)*$5)}else{print $1"\\t"$4"\\t"$2"\\t"(($2-$4)*$5)}' + \
+		"}' | sort -k1,1 -k2,2n | " + "bedtools map -a ./genome.windows -b - -c 4 |" + \
+		   "awk 'BEGIN{print" + ' "chr\\tstart\\tend\\tid\\tnumber"}{if($5=="."){print $1"\\t"$2"\\t"$3"\\t"$4"\\t0"}' + "else{print}}' >" + outputfile + ".infer.depth"
 
-	cmd4 = "paste " + outputfile +  ".recombination.bin " + outputfile +  ".no.recombination.bin" + \
-		" | awk 'BEGIN{print" + ' "chr\\tstart\\tend\\tid\\tnumber"}{if(($5!="0")&&($1!="chr")&&($10>=' + str(bin_depth) + ')){print $1"\\t"$2"\\t"$3"\\t"$4"\\t"$5/($5+$10)/' + distance + "}}' >" + outputfile + ".bin.rate"
+	print ("CMD = " + cmd5)
+	os.system(cmd5)
+	#distance = os.popen("awk '{sum += ($4-$2); n++} END {print sum/n}'" + outputfile + ".recombination").read()[:-1]
+
+	cmd4 = "paste " + outputfile +  ".recombination.bin " + outputfile +  ".infer.depth" + \
+		" | awk 'BEGIN{print" + ' "chr\\tstart\\tend\\tid\\tnumber"}{if(($5!="0")&&($1!="chr")&&($10>=' + str(bin_depth) + ')){print $1"\\t"$2"\\t"$3"\\t"$4"\\t"($5/$10)}' + "}' >" + outputfile + ".bin.rate"
+
 	print ("CMD = " + cmd4)
 	os.system(cmd4)
 	
