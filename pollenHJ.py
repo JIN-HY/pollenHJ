@@ -90,7 +90,7 @@ def step1(inputfile, snps, outputfile):
 		print (outputfile + ".ref.snps.bed existed, pass..")
 		pass
 	else:
-		cmd1 = "awk '{print" + ' $1"\\t"$2"\\t"$2"\\t"$3"\\t"$4' + "}' " + snps + " |sort -nk 1 -nk 2 > " + outputfile + ".ref.snps.bed"
+		cmd1 = "awk '{print" + ' $1"\\t"($2-1)"\\t"$2"\\t"$3"\\t"$4' + "}' " + snps + " |sort -nk 1 -nk 2 > " + outputfile + ".ref.snps.bed"
 		print ("CMD = " + cmd1)
 		os.system(cmd1)
 	
@@ -130,7 +130,7 @@ def step2(inputfile, snps, outputfile, tp, NM): # This step use the vcf file, sh
 			for each in f:
 				each = each[:-1].split()
 				#print (each)
-				for pileupcolumn in samfile.pileup(each[0], int(each[1]), int(each[1]) + 1):
+				for pileupcolumn in samfile.pileup(each[0], int(each[1])-1, int(each[1])):
 					#print (pileupcolumn)
 					
 					if pileupcolumn.pos != int(each[1]) - 1: 
